@@ -1,0 +1,35 @@
+{
+  "name": "wattwiseai",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
+    "compression": "^1.8.1",
+    "debug": "^4.4.3",
+    "expo": "~54.0.0",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.2"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "browserslist": "^4.28.8",
+    "css-in-js-utils": "^2.0.1",
+    "inline-style-prefixer": "^7.0.1",
+    "node-releases": "^2.0.18",
+    "pngjs": "^7.0.0",
+    "typescript": "~6.0.3",
+    "ws": "^8.21.3"
+  },
+  "scripts": {
+    "start": "npx expo start",
+    "android": "npx expo start --android",
+    "ios": "npx expo start --ios",
+    "web": "npx expo start --web",
+    "typecheck": "npx tsc --noEmit"
+  },
+  "private": true
+}
