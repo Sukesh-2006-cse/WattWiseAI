@@ -6,11 +6,11 @@ import React from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BORDER_RADIUS, COLORS, SPACING } from '../constants/theme';
-import { useEnergyData } from '../hooks/useEnergyData';
+import { useEnergy } from '../context/EnergyContext';
 import { formatValue } from '../utils/energyUtils';
 
 export const AnalyticsScreen: React.FC = () => {
-  const { data, history } = useEnergyData();
+  const { data, history } = useEnergy();
 
   const powers = history.map((h) => h.power);
   const minPower = powers.length ? Math.min(...powers) : (data?.power || 0);

@@ -7,7 +7,14 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BORDER_RADIUS, COLORS, SPACING } from '../constants/theme';
 
-export const LoadingView: React.FC = () => {
+interface LoadingViewProps {
+  /** Optional status line (defaults to the telemetry connect message). */
+  message?: string;
+}
+
+export const LoadingView: React.FC<LoadingViewProps> = ({
+  message = 'Connecting to energy monitor...',
+}) => {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -20,7 +27,7 @@ export const LoadingView: React.FC = () => {
 
         <View style={styles.loadingBox}>
           <ActivityIndicator size="large" color={COLORS.primary} />
-          <Text style={styles.statusText}>Connecting to energy monitor...</Text>
+          <Text style={styles.statusText}>{message}</Text>
         </View>
       </View>
     </View>

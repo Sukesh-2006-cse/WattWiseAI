@@ -3,16 +3,32 @@
  */
 
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { AccountHeader } from '../components/AccountHeader';
 import { BORDER_RADIUS, COLORS, SPACING } from '../constants/theme';
+import { AlertsProvider } from '../context/AlertsContext';
+import { EnergyProvider } from '../context/EnergyContext';
 import { AnalyticsScreen } from '../screens/AnalyticsScreen';
 import { BillPredictionScreen } from '../screens/BillPredictionScreen';
 import { DashboardScreen } from '../screens/DashboardScreen';
 
 type TabType = 'dashboard' | 'analytics' | 'billPrediction';
 
-export const AppNavigator: React.FC = () => {
+/**
+ * Wraps the signed-in app so a single telemetry poll feeds every tab, and the
+ * high-load alert watcher sits ABOVE the tab switcher - it must keep evaluating
+ * readings no matter which screen is currently mounted.
+ */
+export const AppNavigator: React.FC = () => (
+  <EnergyProvider>
+    <AlertsProvider>
+      <AppTabs />
+    </AlertsProvider>
+  </EnergyProvider>
+);
+
+const AppTabs: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
 
   const renderActiveScreen = () => {
@@ -29,7 +45,10 @@ export const AppNavigator: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      {/* Signed-in Account Bar */}
+      <AccountHeader />
+
       {/* Screen Body */}
       <View style={styles.screenContent}>{renderActiveScreen()}</View>
 
@@ -95,7 +114,7 @@ export const AppNavigator: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 

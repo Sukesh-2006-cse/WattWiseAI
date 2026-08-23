@@ -10,6 +10,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
+import { AlertStatusCard } from '../components/AlertStatusCard';
 import { ConnectionHeader } from '../components/ConnectionHeader';
 import { EnergyChart } from '../components/EnergyChart';
 import { ErrorView } from '../components/ErrorView';
@@ -17,7 +18,9 @@ import { LoadingView } from '../components/LoadingView';
 import { MetricCard } from '../components/MetricCard';
 import { LoadStatusCard, PowerClassificationCard } from '../components/StatusBadge';
 import { COLORS, SPACING } from '../constants/theme';
-import { useEnergyData } from '../hooks/useEnergyData';
+import { useAlerts } from '../context/AlertsContext';
+import { useAuth } from '../context/AuthContext';
+import { useEnergy } from '../context/EnergyContext';
 
 export const DashboardScreen: React.FC = () => {
   const {
@@ -29,7 +32,12 @@ export const DashboardScreen: React.FC = () => {
     lastUpdated,
     history,
     isConfigured,
-  } = useEnergyData();
+  } = useEnergy();
+
+  const { user } = useAuth();
+  // The watcher itself runs app-wide in <AlertsProvider>; this screen only
+  // renders its state, so alerts continue while other tabs are open.
+  const alerts = useAlerts();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -75,6 +83,9 @@ export const DashboardScreen: React.FC = () => {
           lastUpdated={lastUpdated}
           isConfigured={isConfigured}
         />
+
+        {/* High Load Email Alerts */}
+        <AlertStatusCard alerts={alerts} recipientEmail={user?.email ?? null} />
 
         {/* Metric Cards Grid */}
         <View style={styles.metricsGrid}>

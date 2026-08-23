@@ -4,9 +4,11 @@
   "main": "index.ts",
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "compression": "^1.8.1",
     "debug": "^4.4.3",
     "expo": "~54.0.0",
+    "expo-crypto": "^57.0.1",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",

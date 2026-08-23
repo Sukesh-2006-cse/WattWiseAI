@@ -6,14 +6,17 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { COLORS } from './src/constants/theme';
-import { AppNavigator } from './src/navigation/AppNavigator';
+import { AuthProvider } from './src/context/AuthContext';
+import { RootNavigator } from './src/navigation/RootNavigator';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-      <AppNavigator />
-    </View>
+    <AuthProvider>
+      <View style={styles.container}>
+        <StatusBar style="light" />
+        <RootNavigator />
+      </View>
+    </AuthProvider>
   );
 }
 
