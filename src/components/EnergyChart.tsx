@@ -2,7 +2,7 @@
  * WattWise AI - Live Power Consumption Chart Component
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import { BORDER_RADIUS, COLORS, SPACING } from '../constants/theme';
@@ -14,10 +14,11 @@ interface EnergyChartProps {
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CHART_WIDTH = SCREEN_WIDTH - SPACING.md * 4;
 const CHART_HEIGHT = 130;
 
 export const EnergyChart: React.FC<EnergyChartProps> = ({ history, currentPower }) => {
+  const [chartWidth, setChartWidth] = useState<number>(SCREEN_WIDTH - 64);
+
   // Build data points for SVG rendering
   const points = history.length > 0
     ? history.map((h) => h.power)
@@ -29,13 +30,13 @@ export const EnergyChart: React.FC<EnergyChartProps> = ({ history, currentPower 
 
   // Generate SVG path string
   const pathD = points.reduce((acc, val, index) => {
-    const x = (index / Math.max(points.length - 1, 1)) * CHART_WIDTH;
+    const x = (index / Math.max(points.length - 1, 1)) * chartWidth;
     const y = CHART_HEIGHT - ((val - minVal) / range) * (CHART_HEIGHT - 20) - 10;
     return index === 0 ? `M ${x} ${y}` : `${acc} L ${x} ${y}`;
   }, '');
 
   // Fill path string for background gradient under line
-  const areaD = `${pathD} L ${CHART_WIDTH} ${CHART_HEIGHT} L 0 ${CHART_HEIGHT} Z`;
+  const areaD = `${pathD} L ${chartWidth} ${CHART_HEIGHT} L 0 ${CHART_HEIGHT} Z`;
 
   return (
     <View style={styles.card}>
@@ -44,9 +45,17 @@ export const EnergyChart: React.FC<EnergyChartProps> = ({ history, currentPower 
         <Text style={styles.subtitle}>Real-time Power Curve (W)</Text>
       </View>
 
-      <View style={styles.chartContainer}>
-        {points.length > 0 ? (
-          <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
+      <View
+        style={styles.chartContainer}
+        onLayout={(e) => {
+          const w = e.nativeEvent.layout.width;
+          if (w > 100 && Math.abs(w - chartWidth) > 2) {
+            setChartWidth(w);
+          }
+        }}
+      >
+        {points.length > 0 && chartWidth > 0 ? (
+          <Svg width={chartWidth} height={CHART_HEIGHT}>
             <Defs>
               <LinearGradient id="powerGrad" x1="0" y1="0" x2="0" y2="1">
                 <Stop offset="0%" stopColor={COLORS.primary} stopOpacity="0.4" />
@@ -111,6 +120,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   chartContainer: {
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     marginVertical: SPACING.xs,

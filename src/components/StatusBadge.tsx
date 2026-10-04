@@ -87,6 +87,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     marginBottom: SPACING.xs,
+    flex: 1,
+    marginRight: 8,
   },
   row: {
     flexDirection: 'row',
@@ -118,6 +120,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: BORDER_RADIUS.full,
     borderWidth: 1,
+    flexShrink: 0,
   },
   badgeText: {
     fontSize: 11,

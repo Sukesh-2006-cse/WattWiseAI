@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BORDER_RADIUS, COLORS, SPACING } from '../constants/theme';
 import { useEnergyData } from '../hooks/useEnergyData';
@@ -19,9 +19,16 @@ export const AnalyticsScreen: React.FC = () => {
     ? powers.reduce((a, b) => a + b, 0) / powers.length
     : (data?.power || 0);
 
+  const rawStatus = (data?.status || '').trim();
+  const isMultilineStatus = rawStatus.includes('\n') || rawStatus.length > 30;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <View style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Energy Analytics</Text>
@@ -46,13 +53,30 @@ export const AnalyticsScreen: React.FC = () => {
             </Text>
           </View>
 
-          <View style={styles.statRow}>
-            <Text style={styles.statLabel}>Hardware Datastream Status:</Text>
-            <Text style={[styles.statValue, { color: COLORS.textSecondary }]}>
-              {data?.status || 'Active'}
-            </Text>
-          </View>
+          {!isMultilineStatus && (
+            <View style={[styles.statRow, { borderBottomWidth: 0 }]}>
+              <Text style={styles.statLabel}>Hardware Datastream Status:</Text>
+              <Text style={[styles.statValue, { color: COLORS.textSecondary }]}>
+                {rawStatus || 'Active (Blynk Cloud)'}
+              </Text>
+            </View>
+          )}
         </View>
+
+        {/* Hardware Stream Readout (V0) - Formatted Terminal Card */}
+        {isMultilineStatus ? (
+          <View style={styles.card}>
+            <View style={styles.terminalHeader}>
+              <Ionicons name="hardware-chip-outline" size={16} color={COLORS.primary} style={{ marginRight: 6 }} />
+              <Text style={styles.cardTitle}>HARDWARE DATASTREAM READOUT (V0)</Text>
+            </View>
+            <View style={styles.terminalBox}>
+              <Text style={styles.terminalText}>
+                {rawStatus}
+              </Text>
+            </View>
+          </View>
+        ) : null}
 
         {/* Real-time Session Telemetry */}
         <View style={styles.card}>
@@ -60,65 +84,70 @@ export const AnalyticsScreen: React.FC = () => {
 
           <View style={styles.grid}>
             <View style={styles.gridBox}>
-              <Ionicons name="trending-down" size={20} color={COLORS.secondary} />
-              <Text style={styles.gridLabel}>Min Power</Text>
-              <Text style={styles.gridValue}>{formatValue(minPower, 1)} W</Text>
+              <Ionicons name="trending-down" size={18} color={COLORS.secondary} />
+              <Text style={styles.gridLabel} numberOfLines={1}>Min Power</Text>
+              <Text style={styles.gridValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                {formatValue(minPower, 1)} W
+              </Text>
             </View>
 
             <View style={styles.gridBox}>
-              <Ionicons name="analytics" size={20} color={COLORS.primary} />
-              <Text style={styles.gridLabel}>Avg Power</Text>
-              <Text style={styles.gridValue}>{formatValue(avgPower, 1)} W</Text>
+              <Ionicons name="analytics" size={18} color={COLORS.primary} />
+              <Text style={styles.gridLabel} numberOfLines={1}>Avg Power</Text>
+              <Text style={styles.gridValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                {formatValue(avgPower, 1)} W
+              </Text>
             </View>
 
             <View style={styles.gridBox}>
-              <Ionicons name="trending-up" size={20} color={COLORS.warning} />
-              <Text style={styles.gridLabel}>Max Power</Text>
-              <Text style={styles.gridValue}>{formatValue(maxPower, 1)} W</Text>
+              <Ionicons name="trending-up" size={18} color={COLORS.warning} />
+              <Text style={styles.gridLabel} numberOfLines={1}>Max Power</Text>
+              <Text style={styles.gridValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
+                {formatValue(maxPower, 1)} W
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Historical Data Placeholder */}
+        {/* Historical Data Notice */}
         <View style={styles.noticeCard}>
           <View style={styles.noticeIconBox}>
-            <Ionicons name="time-outline" size={24} color={COLORS.info} />
+            <Ionicons name="time-outline" size={22} color={COLORS.info} />
           </View>
           <View style={styles.noticeTextGroup}>
             <Text style={styles.noticeTitle}>Historical Analytics</Text>
             <Text style={styles.noticeBody}>
-              Historical analytics (daily, weekly, and monthly trends) will appear here as long-term telemetry data is accumulated in the backend database.
+              Historical trends (daily, weekly, and monthly summaries) are recorded live in MongoDB Atlas as your device streams telemetry.
             </Text>
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  container: {
-    flex: 1,
-  },
   contentContainer: {
     padding: SPACING.md,
+    paddingBottom: 120,
   },
   header: {
-    marginBottom: SPACING.lg,
+    marginBottom: SPACING.md,
   },
   title: {
     color: COLORS.textPrimary,
     fontSize: 24,
     fontWeight: '800',
+    letterSpacing: 0.3,
   },
   subtitle: {
     color: COLORS.textMuted,
     fontSize: 13,
-    marginTop: 2,
+    marginTop: 3,
   },
   card: {
     backgroundColor: COLORS.cardBackground,
@@ -133,48 +162,70 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.8,
+    textTransform: 'uppercase',
     marginBottom: SPACING.sm,
   },
   statRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: SPACING.xs,
+    alignItems: 'center',
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.cardBorder,
   },
   statLabel: {
     color: COLORS.textSecondary,
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: '500',
+    flex: 1,
   },
   statValue: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
+    marginLeft: 8,
+  },
+  terminalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  terminalBox: {
+    backgroundColor: '#090D14',
+    borderRadius: BORDER_RADIUS.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.2)',
+    padding: SPACING.md,
+  },
+  terminalText: {
+    color: '#34D399',
+    fontFamily: 'monospace',
+    fontSize: 12,
+    lineHeight: 18,
   },
   grid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: SPACING.sm,
-    marginTop: SPACING.xs,
+    gap: 8,
   },
   gridBox: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: COLORS.inputBackground,
     borderRadius: BORDER_RADIUS.sm,
-    padding: SPACING.sm,
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
+    padding: 10,
+    alignItems: 'center',
   },
   gridLabel: {
     color: COLORS.textMuted,
     fontSize: 11,
+    fontWeight: '600',
     marginTop: 4,
   },
   gridValue: {
     color: COLORS.textPrimary,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    marginTop: 2,
+    marginTop: 3,
   },
   noticeCard: {
     backgroundColor: 'rgba(6, 182, 212, 0.08)',
@@ -183,7 +234,6 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(6, 182, 212, 0.25)',
     padding: SPACING.md,
     flexDirection: 'row',
-    gap: SPACING.md,
     alignItems: 'flex-start',
   },
   noticeIconBox: {
@@ -193,19 +243,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(6, 182, 212, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
+    marginRight: 10,
   },
   noticeTextGroup: {
     flex: 1,
   },
   noticeTitle: {
     color: COLORS.info,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
-    marginBottom: 4,
+    marginBottom: 3,
   },
   noticeBody: {
     color: COLORS.textSecondary,
     fontSize: 12,
-    lineHeight: 18,
+    lineHeight: 17,
   },
 });

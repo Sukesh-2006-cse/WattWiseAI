@@ -33,10 +33,12 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={[styles.iconContainer, { backgroundColor: accentColor + '20' }]}>
-          <Ionicons name={iconName} size={20} color={accentColor} />
+          <Ionicons name={iconName} size={18} color={accentColor} />
         </View>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title} numberOfLines={1}>
+            {title}
+          </Text>
           {isSimulated ? (
             <View style={styles.simulatedBadge}>
               <Text style={styles.simulatedText}>Simulated</Text>
@@ -46,11 +48,22 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       </View>
 
       <View style={styles.valueContainer}>
-        <Text style={styles.valueText}>{formatValue(value, decimals)}</Text>
+        <Text
+          style={styles.valueText}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+        >
+          {formatValue(value, decimals)}
+        </Text>
         <Text style={[styles.unitText, { color: accentColor }]}>{unit}</Text>
       </View>
 
-      {subtitle ? <Text style={styles.subtitleText}>{subtitle}</Text> : null}
+      {subtitle ? (
+        <Text style={styles.subtitleText} numberOfLines={1} ellipsizeMode="tail">
+          {subtitle}
+        </Text>
+      ) : null}
     </View>
   );
 };
@@ -65,11 +78,11 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: '45%',
     marginBottom: SPACING.md,
+    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 2,
   },
   header: {
     flexDirection: 'row',
@@ -77,23 +90,24 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   iconContainer: {
-    width: 36,
-    height: 36,
+    width: 34,
+    height: 34,
     borderRadius: BORDER_RADIUS.sm,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: SPACING.sm,
+    marginRight: 8,
   },
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
     flexWrap: 'wrap',
     gap: 4,
   },
   title: {
     color: COLORS.textMuted,
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -113,21 +127,22 @@ const styles = StyleSheet.create({
   valueContainer: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginTop: SPACING.xs,
+    marginTop: 4,
   },
   valueText: {
     color: COLORS.textPrimary,
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    marginRight: SPACING.xs,
+    marginRight: 6,
+    flexShrink: 1,
   },
   unitText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
   },
   subtitleText: {
     color: COLORS.textMuted,
     fontSize: 11,
-    marginTop: SPACING.xs,
+    marginTop: 4,
   },
 });

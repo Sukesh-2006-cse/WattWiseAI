@@ -410,6 +410,6 @@
     "train_samples": 42048,
     "val_samples": 10512
   },
-  "trained_at": "2026-10-04T04:33:35Z",
+  "trained_at": "2026-10-04T04:42:28Z",
   "version": "1.0.0"
 }

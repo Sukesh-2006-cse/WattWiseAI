@@ -25,6 +25,11 @@ const {
   TANGEDCO_DOMESTIC_SLABS,
   BASE_UNSUBSIDIZED_RATE_PER_UNIT,
 } = require('./services/tariffEngine');
+const {
+  writeTelemetryToInflux,
+  queryTelemetryFromInflux,
+  isInfluxConfigured,
+} = require('./services/influxService');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -57,6 +62,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    influxdb: isInfluxConfigured() ? 'connected' : 'not_configured',
     timestamp: new Date(),
   });
 });
@@ -183,7 +189,20 @@ app.post('/api/telemetry', async (req, res) => {
     });
     await telemetry.save();
 
-    // 2. Process load state transitions & send email if needed
+    // 2. Save Telemetry Point into InfluxDB Time-Series DB (if configured)
+    writeTelemetryToInflux({
+      userEmail,
+      voltage: numVoltage,
+      current: numCurrent,
+      power: numPower,
+      energy: numEnergy,
+      status: cleanStatus,
+      timestamp: new Date(),
+    }).catch((err) => {
+      console.warn('InfluxDB write notice:', err.message);
+    });
+
+    // 3. Process load state transitions & send email if needed
     const emailResult = await processLoadStateAndSendEmail(
       userEmail.toLowerCase().trim(),
       userName,
@@ -200,10 +219,40 @@ app.post('/api/telemetry', async (req, res) => {
       message: 'Telemetry recorded successfully',
       telemetryId: telemetry._id,
       emailAlert: emailResult,
+      influxSaved: isInfluxConfigured(),
     });
   } catch (error) {
     console.error('Error in /api/telemetry:', error);
     res.status(500).json({ error: 'Failed to record telemetry', details: error.message });
+  }
+});
+
+/**
+ * Query Telemetry from InfluxDB Time-Series Database
+ * GET /api/telemetry/influx?email=user@example.com&range=-1h
+ */
+app.get('/api/telemetry/influx', async (req, res) => {
+  try {
+    const { email, range = '-1h' } = req.query;
+    if (!email) {
+      return res.status(400).json({ error: 'email query parameter is required.' });
+    }
+
+    if (!isInfluxConfigured()) {
+      return res.status(503).json({
+        error: 'InfluxDB is not configured yet. Configure INFLUX_URL, INFLUX_TOKEN, and INFLUX_ORG in .env.',
+      });
+    }
+
+    const data = await queryTelemetryFromInflux(email, range);
+    res.json({
+      email,
+      range,
+      count: data.length,
+      data,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to query InfluxDB', details: err.message });
   }
 });
 
