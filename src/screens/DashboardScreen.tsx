@@ -58,7 +58,7 @@ export const DashboardScreen: React.FC = () => {
 
   // Request push notification permissions on mount
   useEffect(() => {
-    requestNotificationPermissions();
+    requestNotificationPermissions().catch(() => {});
   }, []);
 
   // Record telemetry in MongoDB Atlas & evaluate automated push alerts
@@ -83,14 +83,14 @@ export const DashboardScreen: React.FC = () => {
 
       // A. Load Detected transition (Bulb turned ON)
       if (lastLoadActiveRef.current !== null && !lastLoadActiveRef.current && isCurrentLoadActive) {
-        notifyLoadDetected(data.current, data.power);
-        setNotificationMsg(`🔔 Push Alert Dispatched: 💡 Load Detected (${data.power.toFixed(1)}W)`);
+        notifyLoadDetected(data.current, data.power).catch(() => {});
+        setNotificationMsg(`🔔 Push Alert: 💡 Load Detected (${data.power.toFixed(1)}W)`);
       }
 
       // B. Load Disconnected transition (Bulb turned OFF)
       if (lastLoadActiveRef.current !== null && lastLoadActiveRef.current && !isCurrentLoadActive) {
-        notifyLoadDisconnected();
-        setNotificationMsg('🔔 Push Alert Dispatched: 🔌 Load Disconnected');
+        notifyLoadDisconnected().catch(() => {});
+        setNotificationMsg('🔔 Push Alert: 🔌 Load Disconnected');
       }
 
       lastLoadActiveRef.current = isCurrentLoadActive;
@@ -98,8 +98,8 @@ export const DashboardScreen: React.FC = () => {
       // C. Over Current Alert (threshold > 0.22A for 40W bulb test, debounced 30s)
       if (data.current > 0.22 && Date.now() - lastOvercurrentAlertRef.current > 30000) {
         lastOvercurrentAlertRef.current = Date.now();
-        notifyOvercurrentDetected(data.current, 0.22);
-        setNotificationMsg(`⚠️ Push Alert Dispatched: Overcurrent (${data.current.toFixed(3)}A)`);
+        notifyOvercurrentDetected(data.current, 0.22).catch(() => {});
+        setNotificationMsg(`⚠️ Push Alert: Overcurrent (${data.current.toFixed(3)}A)`);
       }
     }
   }, [data, user]);
