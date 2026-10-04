@@ -25,3 +25,7 @@ Thumbs.db
 # Native build folders
 android/
 ios/
+
+# Large Datasets
+server/models/ml/*.csv
+
