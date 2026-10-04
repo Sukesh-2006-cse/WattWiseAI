@@ -1,0 +1,9 @@
+{
+  "target_load": "40W Tungsten / Halogen Single Bulb",
+  "region": "Tamil Nadu, India",
+  "grid_nominal_voltage": "230V AC",
+  "tariff_scheme": "TANGEDCO LT Tariff 1A (Domestic)",
+  "r2_score": 0.9299092785001738,
+  "rmse": 0.052435458080280495,
+  "records_trained": 52560
+}
