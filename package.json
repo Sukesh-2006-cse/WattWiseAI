@@ -4,13 +4,18 @@
   "main": "index.ts",
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "abort-controller": "^3.0.0",
+    "buffer": "^6.0.3",
     "compression": "^1.8.1",
     "debug": "^4.4.3",
-    "expo": "~54.0.0",
+    "expo": "~57.0.0",
+    "expo-font": "~57.0.4",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-native": "0.86.2",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
     "react-native-svg": "15.15.4",
     "react-native-web": "^0.21.2"
   },
@@ -25,11 +30,21 @@
     "ws": "^8.21.3"
   },
   "scripts": {
+    "dev": "node scripts/dev.js",
+    "dev:web": "node scripts/dev.js --web",
+    "dev:android": "node scripts/dev.js --android",
+    "dev:ios": "node scripts/dev.js --ios",
+    "server": "npm --prefix server run dev",
+    "server:start": "npm --prefix server start",
     "start": "npx expo start",
     "android": "npx expo start --android",
     "ios": "npx expo start --ios",
     "web": "npx expo start --web",
-    "typecheck": "npx tsc --noEmit"
+    "typecheck": "npx tsc --noEmit",
+    "ml:dataset": "python scripts/generate_tn_dataset.py",
+    "ml:train": "python scripts/train_model.py",
+    "ml:test": "python scripts/test_model.py",
+    "ml:pipeline": "python scripts/generate_tn_dataset.py && python scripts/train_model.py && python scripts/test_model.py"
   },
   "private": true
 }
