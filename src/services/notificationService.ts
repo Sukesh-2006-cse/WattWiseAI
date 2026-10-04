@@ -1,17 +1,15 @@
 /**
- * WattWise AI - Universal Notification Service
- * Fully guarded for Expo Go, development builds, and web browsers.
- * Uses expo-notifications where supported, with automatic zero-crash fallback
- * to React Native Alert modal and in-app banners when running inside Expo Go.
+ * WattWise AI - Free Push & Local Notification Service
+ * Fully enabled for Expo Go on Android, iOS, and Web.
+ * Delivers instant notifications with sound, vibration, and system tray alerts.
  */
 
 import { Alert, Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
 
-// Safe dynamic reference to expo-notifications
-let Notifications: any = null;
-try {
-  Notifications = require('expo-notifications');
-  if (Notifications && typeof Notifications.setNotificationHandler === 'function') {
+// Configure foreground notification behavior (alert banner, sound, badge)
+if (Platform.OS !== 'web') {
+  try {
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
         shouldShowAlert: true,
@@ -21,18 +19,18 @@ try {
         shouldShowList: true,
       }),
     });
+  } catch (e) {
+    // Non-blocking fallback
   }
-} catch (e) {
-  console.warn('⚠️ expo-notifications native module not available in this environment. Using Alert fallback.');
 }
 
-let isChannelSet = false;
+let isChannelConfigured = false;
 
 /**
  * Request notification permissions safely
  */
 export async function requestNotificationPermissions(): Promise<boolean> {
-  // Web browser fallback
+  // 1. Web browser permissions
   if (Platform.OS === 'web') {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       if (Notification.permission === 'granted') return true;
@@ -48,45 +46,39 @@ export async function requestNotificationPermissions(): Promise<boolean> {
     return false;
   }
 
-  // Native check
-  if (!Notifications || typeof Notifications.getPermissionsAsync !== 'function') {
-    return true; // Use Alert fallback
-  }
-
+  // 2. Native mobile permissions (Android & iOS)
   try {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
 
-    if (existingStatus !== 'granted' && typeof Notifications.requestPermissionsAsync === 'function') {
+    if (existingStatus !== 'granted') {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
 
-    // Set Android notification channel safely
-    if (Platform.OS === 'android' && !isChannelSet && typeof Notifications.setNotificationChannelAsync === 'function') {
+    // Set Android notification channel
+    if (Platform.OS === 'android' && !isChannelConfigured) {
       try {
-        await Notifications.setNotificationChannelAsync('wattwise-alerts', {
+        await Notifications.setNotificationChannelAsync('default', {
           name: 'WattWise Alerts',
           importance: Notifications.AndroidImportance.MAX,
           vibrationPattern: [0, 250, 250, 250],
           lightColor: '#22C55E',
-          sound: 'default',
         });
-        isChannelSet = true;
+        isChannelConfigured = true;
       } catch (channelErr) {
-        // Suppress channel setup error in Expo Go
+        // Channel setup error suppressed
       }
     }
 
     return finalStatus === 'granted';
   } catch (err: any) {
-    console.warn('Notification permission check caught:', err?.message || err);
     return false;
   }
 }
 
 /**
- * Trigger notification on mobile (Expo Go local push or Alert dialog) or web browser
+ * Trigger an instant push notification on mobile or web
  */
 export async function sendPushNotification(
   title: string,
@@ -101,39 +93,34 @@ export async function sendPushNotification(
         return { success: true, messageId: 'web-' + Date.now() };
       } catch {}
     }
-    // Web Alert fallback
     if (typeof alert !== 'undefined') {
       alert(`${title}\n\n${body}`);
     }
     return { success: true, messageId: 'web-alert' };
   }
 
-  // 2. Try native notification via expo-notifications
-  if (Notifications && typeof Notifications.scheduleNotificationAsync === 'function') {
-    try {
-      await requestNotificationPermissions();
+  // 2. Native mobile notification via Expo Go
+  try {
+    await requestNotificationPermissions();
 
-      const id = await Notifications.scheduleNotificationAsync({
-        content: {
-          title,
-          body,
-          data,
-          sound: true,
-          priority: Notifications.AndroidNotificationPriority?.MAX ?? 2,
-        },
-        trigger: null, // trigger immediately
-      });
+    const id = await Notifications.scheduleNotificationAsync({
+      content: {
+        title,
+        body,
+        data,
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.MAX,
+      },
+      trigger: null, // immediate delivery
+    });
 
-      console.log(`🔔 Push notification delivered: "${title}" (ID: ${id})`);
-      return { success: true, messageId: id };
-    } catch (scheduleErr: any) {
-      console.warn('expo-notifications schedule failed in Expo Go, falling back to Alert modal:', scheduleErr?.message);
-    }
+    console.log(`🔔 Push notification delivered: "${title}" (ID: ${id})`);
+    return { success: true, messageId: id };
+  } catch (err: any) {
+    console.warn('scheduleNotificationAsync fallback:', err?.message || err);
+    Alert.alert(title, body, [{ text: 'OK', style: 'default' }], { cancelable: true });
+    return { success: true, messageId: 'alert-fallback' };
   }
-
-  // 3. Guaranteed zero-crash fallback: Native React Native Alert Dialog
-  Alert.alert(title, body, [{ text: 'OK', style: 'default' }], { cancelable: true });
-  return { success: true, messageId: 'alert-fallback-' + Date.now() };
 }
 
 // --- PRE-BUILT WATTWISE ALERT SCENARIOS ---
